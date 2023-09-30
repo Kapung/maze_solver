@@ -1,4 +1,5 @@
 from tkinter import Tk, BOTH, Canvas
+from time import sleep
 
 COLOR = "black"
 BGCOLOR = "white"
@@ -77,10 +78,56 @@ class Cell():
         self._win.draw_line(Line(Point(self._x1, self._y1), Point(self._x2, self._y1)), c_top)
         self._win.draw_line(Line(Point(self._x1, self._y2), Point(self._x2, self._y2)), c_bot)
 
+    def draw_move(self, to_cell, undo=False):
+        color = "red"
+        if undo:
+            color = "gray"
+
+        left_cell = Point(self._x1 + abs(self._x1 - self._x2) // 2, self._y1 + abs(self._y1 - self._y2) // 2)
+        right_cell = Point(to_cell._x1 + abs(to_cell._x1 - to_cell._x2) // 2, to_cell._y1 + abs(to_cell._y1 - to_cell._y2) // 2)
+
+        self._win.draw_line(Line(left_cell, right_cell), color)
+
+class Maze():
+    
+    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win):
+        self._x1 = x1
+        self._y1 = y1
+        self._num_rows = num_rows
+        self._num_cols = num_cols
+        self._cell_size_x = cell_size_x
+        self._cell_size_y = cell_size_y
+        self._win = win
+
+        self._create_cells()
+
+    def _create_cells(self):
+        self._cells = [[self._draw_cell(c, r) for r in range(self._num_rows)] for c in range(self._num_cols)]
+
+    def _draw_cell(self, i, j):
+        x = Point(self._x1 + i * self._cell_size_x, self._y1 + j * self._cell_size_y)
+        y = Point(self._x1 + (i + 1) * self._cell_size_x, self._y1 + (j + 1) * self._cell_size_y)
+
+        cell = Cell(x, y, self._win)
+        cell.draw()
+
+        self._animate()
+
+    def _animate(self):
+        self._win.redraw()
+        sleep(0.005)
+
 def main():
-    win = Window(800, 600)
-    #win.draw_line(Line(Point(15, 25), Point(200, 25)), COLOR)
-    Cell(Point(10, 10), Point(160, 160), win, True, True, False, False).draw()
+    win = Window(800, 590)
+    """win.draw_line(Line(Point(15, 25), Point(200, 25)), COLOR)
+    c1 = Cell(Point(10, 10), Point(160, 160), win)
+    c1.draw()
+    c2 = Cell(Point(300, 10), Point(450, 160), win)
+    c2.draw()
+    c1.draw_move(c2)"""
+
+    maze = Maze(10, 10, 19, 26, 30, 30, win)
+    
     win.wait_for_close()
 
 main()
