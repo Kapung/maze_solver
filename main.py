@@ -38,6 +38,9 @@ class Point():
         self.x = x
         self.y = y
 
+    def __str__(self):
+        return f"X: {self.x} | Y: {self.y}"
+
 class Line():
 
     def __init__(self, x, y):
@@ -50,33 +53,41 @@ class Line():
 
 class Cell():
 
-    def __init__(self, x, y, win, has_left_wall=True, has_right_wall=True, has_top_wall=True, has_bottom_wall=True):
-        self.has_left_wall = has_left_wall
-        self.has_right_wall = has_right_wall
-        self.has_top_wall = has_top_wall
-        self.has_bottom_wall = has_bottom_wall
+    def __init__(self, win, x=Point(10, 10), y=Point(40, 40)):
+        self.has_left_wall = True
+        self.has_right_wall = True
+        self.has_top_wall = True
+        self.has_bottom_wall = True
         self._x1 = x.x
         self._x2 = y.x
         self._y1 = x.y
         self._y2 = y.y
         self._win = win
+        self.c_left = COLOR
+        self.c_right = COLOR
+        self.c_top = COLOR
+        self.c_bot = COLOR
+        
+
+    def __str__(self):
+        return f"Left: {self.has_left_wall}\nRight: {self.has_right_wall}\nTop: {self.has_top_wall}\nBot: {self.has_bottom_wall}\nX: {self._x1}|{self._y1}\nY: {self._x2}|{self._y2}"
 
     def draw(self):
-        c_left = c_right = c_top = c_bot = BGCOLOR
 
-        if self.has_left_wall:
-            c_left = COLOR
-        if self.has_right_wall:
-            c_right = COLOR
-        if self.has_top_wall:
-            c_top = COLOR
-        if self.has_bottom_wall:
-            c_bot = COLOR
+        if not self.has_left_wall:
+            self.c_left = BGCOLOR
+        if not self.has_right_wall:
+            self.c_right = BGCOLOR
+        if not self.has_top_wall:
+            print("Triggered")
+            self.c_top = "red"
+        if not self.has_bottom_wall:
+            self.c_bot = BGCOLOR
 
-        self._win.draw_line(Line(Point(self._x1, self._y1), Point(self._x1, self._y2)), c_left)
-        self._win.draw_line(Line(Point(self._x2, self._y1), Point(self._x2, self._y2)), c_right)
-        self._win.draw_line(Line(Point(self._x1, self._y1), Point(self._x2, self._y1)), c_top)
-        self._win.draw_line(Line(Point(self._x1, self._y2), Point(self._x2, self._y2)), c_bot)
+        self._win.draw_line(Line(Point(self._x1, self._y1), Point(self._x1, self._y2)), self.c_left)
+        self._win.draw_line(Line(Point(self._x2, self._y1), Point(self._x2, self._y2)), self.c_right)
+        self._win.draw_line(Line(Point(self._x1, self._y1), Point(self._x2, self._y1)), self.c_top)
+        self._win.draw_line(Line(Point(self._x1, self._y2), Point(self._x2, self._y2)), self.c_bot)
 
     def draw_move(self, to_cell, undo=False):
         color = "red"
@@ -90,7 +101,7 @@ class Cell():
 
 class Maze():
     
-    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win):
+    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win=None):
         self._x1 = x1
         self._y1 = y1
         self._num_rows = num_rows
@@ -98,36 +109,47 @@ class Maze():
         self._cell_size_x = cell_size_x
         self._cell_size_y = cell_size_y
         self._win = win
+        self._cells = []
 
         self._create_cells()
+        self._break_entrance_and_exit()
 
     def _create_cells(self):
-        self._cells = [[self._draw_cell(c, r) for r in range(self._num_rows)] for c in range(self._num_cols)]
+        self._cells = [[Cell(self._win) for _ in range(self._num_rows)] for _ in range(self._num_cols)]
+        for i in range(self._num_cols):
+            for j in range(self._num_rows):
+                self._draw_cell(i, j)
 
     def _draw_cell(self, i, j):
         x = Point(self._x1 + i * self._cell_size_x, self._y1 + j * self._cell_size_y)
         y = Point(self._x1 + (i + 1) * self._cell_size_x, self._y1 + (j + 1) * self._cell_size_y)
 
-        cell = Cell(x, y, self._win)
-        cell.draw()
+        print(x)
+        print(y)
 
+        cell = self._cells[i][j]
+        #print(self._cells[i][j])
+        cell.x = x
+        cell.y = y
+
+        cell.draw()
+        
         self._animate()
 
     def _animate(self):
         self._win.redraw()
         sleep(0.005)
 
+    def _break_entrance_and_exit(self):
+        #I give up I can't for the love of me to get _draw_cell to work
+        self._cells[0][0].has_top_wall = False
+        print(self._draw_cell(0, 0))
+        self._cells[self._num_cols - 1][self._num_rows - 1].has_bottom_wall = False
+        self._draw_cell(self._num_cols - 1, self._num_rows - 1)
+
 def main():
     win = Window(800, 590)
-    """win.draw_line(Line(Point(15, 25), Point(200, 25)), COLOR)
-    c1 = Cell(Point(10, 10), Point(160, 160), win)
-    c1.draw()
-    c2 = Cell(Point(300, 10), Point(450, 160), win)
-    c2.draw()
-    c1.draw_move(c2)"""
-
     maze = Maze(10, 10, 19, 26, 30, 30, win)
-    
     win.wait_for_close()
 
 main()
