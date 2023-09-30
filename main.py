@@ -38,9 +38,6 @@ class Point():
         self.x = x
         self.y = y
 
-    def __str__(self):
-        return f"X: {self.x} | Y: {self.y}"
-
 class Line():
 
     def __init__(self, x, y):
@@ -53,11 +50,11 @@ class Line():
 
 class Cell():
 
-    def __init__(self, win, x=Point(10, 10), y=Point(40, 40)):
-        self.has_left_wall = True
-        self.has_right_wall = True
-        self.has_top_wall = True
-        self.has_bottom_wall = True
+    def __init__(self, x, y, win, has_left_wall=True, has_right_wall=True, has_top_wall=True, has_bottom_wall=True):
+        self.has_left_wall = has_left_wall
+        self.has_right_wall = has_right_wall
+        self.has_top_wall = has_top_wall
+        self.has_bottom_wall = has_bottom_wall
         self._x1 = x.x
         self._x2 = y.x
         self._y1 = x.y
@@ -67,7 +64,6 @@ class Cell():
         self.c_right = COLOR
         self.c_top = COLOR
         self.c_bot = COLOR
-        
 
     def __str__(self):
         return f"Left: {self.has_left_wall}\nRight: {self.has_right_wall}\nTop: {self.has_top_wall}\nBot: {self.has_bottom_wall}\nX: {self._x1}|{self._y1}\nY: {self._x2}|{self._y2}"
@@ -79,8 +75,7 @@ class Cell():
         if not self.has_right_wall:
             self.c_right = BGCOLOR
         if not self.has_top_wall:
-            print("Triggered")
-            self.c_top = "red"
+            self.c_top = BGCOLOR
         if not self.has_bottom_wall:
             self.c_bot = BGCOLOR
 
@@ -101,7 +96,7 @@ class Cell():
 
 class Maze():
     
-    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win=None):
+    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win):
         self._x1 = x1
         self._y1 = y1
         self._num_rows = num_rows
@@ -109,43 +104,39 @@ class Maze():
         self._cell_size_x = cell_size_x
         self._cell_size_y = cell_size_y
         self._win = win
-        self._cells = []
+        self.up_trigger = True
+        self.down_trigger = True
 
         self._create_cells()
         self._break_entrance_and_exit()
 
     def _create_cells(self):
-        self._cells = [[Cell(self._win) for _ in range(self._num_rows)] for _ in range(self._num_cols)]
-        for i in range(self._num_cols):
-            for j in range(self._num_rows):
-                self._draw_cell(i, j)
+        self._cells = [[self._draw_cell(c, r) for r in range(self._num_rows)] for c in range(self._num_cols)]
 
     def _draw_cell(self, i, j):
         x = Point(self._x1 + i * self._cell_size_x, self._y1 + j * self._cell_size_y)
         y = Point(self._x1 + (i + 1) * self._cell_size_x, self._y1 + (j + 1) * self._cell_size_y)
 
-        print(x)
-        print(y)
-
-        cell = self._cells[i][j]
-        #print(self._cells[i][j])
-        cell.x = x
-        cell.y = y
-
+        cell = Cell(x, y, self._win, True, True, self.up_trigger, self.down_trigger)
         cell.draw()
-        
+
         self._animate()
+        return cell
 
     def _animate(self):
         self._win.redraw()
         sleep(0.005)
 
     def _break_entrance_and_exit(self):
-        #I give up I can't for the love of me to get _draw_cell to work
-        self._cells[0][0].has_top_wall = False
-        print(self._draw_cell(0, 0))
-        self._cells[self._num_cols - 1][self._num_rows - 1].has_bottom_wall = False
-        self._draw_cell(self._num_cols - 1, self._num_rows - 1)
+        self.up_trigger = False
+        self._cells[0][0] = self._draw_cell(0, 0)
+        self.up_trigger = True
+
+        self.down_trigger = False
+        self._cells[self._num_cols - 1][self._num_rows - 1] = self._draw_cell(self._num_cols - 1, self._num_rows - 1)
+        self.down_trigger = True
+
+
 
 def main():
     win = Window(800, 590)
