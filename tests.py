@@ -23,6 +23,12 @@ class Tests(unittest.TestCase):
             maze._cells[maze._num_cols - 1][maze._num_rows - 1].has_bottom_wall,
             False
         )
+        for i in range(maze._num_cols):
+            for j in range(maze._num_rows):
+                self.assertEqual(
+                    maze._cells[i][j].visited,
+                    False
+                )
 
 
 if __name__ == "__main__":
